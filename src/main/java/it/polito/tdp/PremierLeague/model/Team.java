@@ -1,13 +1,49 @@
 package it.polito.tdp.PremierLeague.model;
 
-public class Team {
-	Integer teamID;
-	String name;
+import java.util.ArrayList;
+import java.util.List;
+
+public class Team implements Comparable <Team>{
+	private Integer teamID;
+	private String name;
+	private List <Match> matches = new ArrayList <Match>();
+	private int punti;
+	private List <Reporter> reportersTeam;
+	
+
+	public List<Reporter> getReportersTeam() {
+		return reportersTeam;
+	}
+
+	public int getPunti() {
+		return punti;
+	}
+
+	public void setPunti(int punti) {
+		this.punti = punti;
+	}
+
+	public List<Match> getMatches() {
+		return matches;
+	}
+
+	public void setMatches(List<Match> matches) {
+		this.matches = matches;
+	}
 
 	public Team(Integer teamID, String name) {
 		super();
 		this.teamID = teamID;
 		this.name = name;
+		reportersTeam = new ArrayList <Reporter>();
+	}
+	
+	public void addReporter(Reporter r) {
+		reportersTeam.add(r);
+	}
+	
+	public void removeReporter(Reporter r) {
+				reportersTeam.remove(r);
 	}
 	
 	public Integer getTeamID() {
@@ -55,4 +91,7 @@ public class Team {
 		return true;
 	}
 	
+	public int compareTo(Team other) {
+		return this.name.compareTo(other.name);
+	}
 }

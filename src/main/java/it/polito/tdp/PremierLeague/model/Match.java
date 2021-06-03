@@ -1,8 +1,10 @@
 package it.polito.tdp.PremierLeague.model;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
-public class Match {
+public class Match implements Comparable <Match>{
 	Integer matchID;
 	Integer teamHomeID;
 	Integer teamAwayID;
@@ -10,23 +12,51 @@ public class Match {
 	Integer teamAwayFormation;
 	Integer resultOfTeamHome;
 	
-	String teamHomeNAME;
-	String teamAwayNAME;
+	
 
 	LocalDateTime date;
 	
+	List <Reporter> reportersMatch;
+	
+	/**
+	 * 0 = in caso di pareggio
+	 * @return
+	 */
+	public Integer IDVincente() {
+		if(resultOfTeamHome==1)
+			return teamHomeID;
+		else if (resultOfTeamHome==-1)
+			return teamAwayID;
+		else
+			return 0;
+	}
+	
+	/**
+	 * 0 = in caso di pareggio
+	 * @return
+	 */
+	public Integer IDPerdente() {
+		if(resultOfTeamHome==1)
+			return teamAwayID;
+		else if (resultOfTeamHome==-1)
+			return teamHomeID;
+		else
+			return 0;
+	}
+	
+	
 	public Match(Integer matchID, Integer teamHomeID, Integer teamAwayID, Integer teamHomeFormation,
-			Integer teamAwayFormation, Integer resultOfTeamHome, LocalDateTime date, String teamHomeNAME, String teamAwayNAME) {
-		super();
+			Integer teamAwayFormation, Integer resultOfTeamHome, LocalDateTime date) {
+		
 		this.matchID = matchID;
 		this.teamHomeID = teamHomeID;
 		this.teamAwayID = teamAwayID;
 		this.teamHomeFormation = teamHomeFormation;
 		this.teamAwayFormation = teamAwayFormation;
 		this.resultOfTeamHome = resultOfTeamHome;
-		this.teamHomeNAME = teamHomeNAME;
-		this.teamAwayNAME = teamAwayNAME;
+		
 		this.date = date;
+		reportersMatch= new ArrayList <Reporter>();
 	}
 	
 	public Integer getMatchID() {
@@ -59,10 +89,10 @@ public class Match {
 	public void setTeamAwayFormation(Integer teamAwayFormation) {
 		this.teamAwayFormation = teamAwayFormation;
 	}
-	public Integer getReaultOfTeamHome() {
+	public Integer getResultOfTeamHome() {
 		return resultOfTeamHome;
 	}
-	public void setReaultOfTeamHome(Integer resultOfTeamHome) {
+	public void setResultOfTeamHome(Integer resultOfTeamHome) {
 		this.resultOfTeamHome = resultOfTeamHome;
 	}
 	public LocalDateTime getDate() {
@@ -72,34 +102,7 @@ public class Match {
 		this.date = date;
 	}
 
-	public Integer getResultOfTeamHome() {
-		return resultOfTeamHome;
-	}
-
-	public void setResultOfTeamHome(Integer resultOfTeamHome) {
-		this.resultOfTeamHome = resultOfTeamHome;
-	}
-
-	public String getTeamHomeNAME() {
-		return teamHomeNAME;
-	}
-
-	public void setTeamHomeNAME(String teamHomeNAME) {
-		this.teamHomeNAME = teamHomeNAME;
-	}
-
-	public String getTeamAwayNAME() {
-		return teamAwayNAME;
-	}
-
-	public void setTeamAwayNAME(String teamAwayNAME) {
-		this.teamAwayNAME = teamAwayNAME;
-	}
-
-	@Override
-	public String toString() {
-		return "[" + matchID + "] " + teamHomeNAME + " vs. " + teamAwayNAME;
-	}
+	
 
 	@Override
 	public int hashCode() {
@@ -125,5 +128,18 @@ public class Match {
 			return false;
 		return true;
 	}
+	
+	public void addReporter(Reporter r) {
+		reportersMatch.add(r);
+	}
+	
+	public int compareTo (Match other) {
+		return this.date.compareTo(other.date);
+	}
+
+	public List<Reporter> getReportersMatch() {
+		return reportersMatch;
+	}
+	
 	
 }

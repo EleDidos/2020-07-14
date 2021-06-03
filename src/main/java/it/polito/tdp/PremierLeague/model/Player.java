@@ -1,8 +1,12 @@
 package it.polito.tdp.PremierLeague.model;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class Player {
 	Integer playerID;
 	String name;
+	
 	
 	public Player(Integer playerID, String name) {
 		super();
@@ -22,6 +26,8 @@ public class Player {
 	public void setName(String name) {
 		this.name = name;
 	}
+	
+
 
 	@Override
 	public int hashCode() {
