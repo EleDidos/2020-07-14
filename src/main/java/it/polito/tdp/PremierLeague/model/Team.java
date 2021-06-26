@@ -7,7 +7,7 @@ public class Team implements Comparable <Team>{
 	private Integer teamID;
 	private String name;
 	private List <Match> matches = new ArrayList <Match>();
-	private int punti;
+	private int punti=0;
 	private List <Reporter> reportersTeam;
 	
 
@@ -15,13 +15,18 @@ public class Team implements Comparable <Team>{
 		return reportersTeam;
 	}
 
-	public int getPunti() {
-		return punti;
+	/**
+	 * se ci sono dei reporter ne tolgo uno
+	 * @return
+	 */
+	public Reporter getOneReporter() {
+		if(reportersTeam==null)
+			return null;
+		Reporter change = reportersTeam.remove(0); //rimuovo il primo
+		return change;
 	}
 
-	public void setPunti(int punti) {
-		this.punti = punti;
-	}
+	
 
 	public List<Match> getMatches() {
 		return matches;
@@ -29,6 +34,15 @@ public class Team implements Comparable <Team>{
 
 	public void setMatches(List<Match> matches) {
 		this.matches = matches;
+		//calcola i punti
+		for(Match m : matches) {
+			if(m.getResultOfTeamHome()==0)
+				punti++; //pareggio
+			else if(m.getTeamHomeID().equals(this.teamID) && m.getResultOfTeamHome()==1)
+				punti+=3;
+			else if(m.getTeamAwayID().equals(this.teamID) && m.getResultOfTeamHome()==-1)
+				punti+=3;
+		}
 	}
 
 	public Team(Integer teamID, String name) {
@@ -93,5 +107,10 @@ public class Team implements Comparable <Team>{
 	
 	public int compareTo(Team other) {
 		return this.name.compareTo(other.name);
+	}
+	
+	public Integer getPunti() {
+		
+		return punti;
 	}
 }

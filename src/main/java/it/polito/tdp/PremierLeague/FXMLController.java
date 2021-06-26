@@ -5,6 +5,7 @@
 package it.polito.tdp.PremierLeague;
 
 import java.net.URL;
+import java.util.List;
 import java.util.Map;
 import java.util.ResourceBundle;
 
@@ -51,61 +52,83 @@ public class FXMLController {
     @FXML
     void doClassifica(ActionEvent event) {
     	
-    	if(this.model.getGraph()==null) {
-    		txtResult.appendText("Devi prima creare il grafo");
+    	//CONTROLLA SE ESISTE GRAFO
+    	if(model.getGraph()==null) {
+    		txtResult.setText("Devi prima creare il grafo!");
     		return;
     	}
+    	
     	Team scelto;
+    	
     	try {
     		scelto=cmbSquadra.getValue();
+    		if(scelto==null) {
+    			txtResult.setText("Scegli una squadra");
+    			return;
+    		}
     	}catch(NullPointerException npe) {
-    		txtResult.appendText("Devi selezionare una squadra");
+    		txtResult.setText("Scegli una squadra");
     		return;
     	}
-    	int soglia=scelto.getPunti();
-    	Map <Integer,Team> classifica = this.model.getClassifica();
-    	
-    	txtResult.appendText("\n\nLe squadre che hanno totalizzato più punti sono:\n ");
-    	for(Integer punti: classifica.keySet())
-    		if(punti>soglia)
-    			txtResult.appendText(classifica.get(punti)+" "+punti+"\n");
-    	
-     	txtResult.appendText("\nLe squadre che hanno totalizzato meno punti sono:\n ");
-    	for(Integer punti: classifica.keySet())
-    		if(punti<soglia)
-    			txtResult.appendText(classifica.get(punti)+" "+punti+"\n");
+    		int indice=0;
+    		List <Team> classifica= model.getClassifica();
+    		
+    		for(int i=0;i<classifica.size();i++)
+    			if(classifica.get(i).equals(scelto))
+    				indice=i;
+    				
+    		txtResult.appendText("\n\nLe squadre che hanno totalizzato meno punti della prescelta sono:\n");
+    		for(int i=indice+1;i<classifica.size();i++)
+    			txtResult.appendText(classifica.get(i)+"\n");
+    		
+    		txtResult.appendText("\n\nLe squadre che hanno totalizzato più punti della prescelta sono:\n");
+    		for(int i=0;i<indice;i++)
+    			txtResult.appendText(classifica.get(i)+"\n");
+    		
     }
 
     @FXML
     void doCreaGrafo(ActionEvent event) {
+    	
     	txtResult.clear();
-    	this.model.creaGrafo();
-    	cmbSquadra.getItems().addAll(this.model.getSquadre());
-    	txtResult.appendText("Caratteristiche del GRAFO creato:\n#VERTICI = "+this.model.getNVertici()+"\n#ARCHI = "+this.model.getNArchi());
+    	model.creaGrafo();
+    	txtResult.appendText("Caratteristiche del grafo:\n#VERTICI = "+model.getNVertici()+"\n#ARCHI = "+model.getNArchi());
+    	
+    	cmbSquadra.getItems().addAll(model.getVertici());
+    	
     }
 
     @FXML
     void doSimula(ActionEvent event) {
-    	Integer N; //reporter per squadra
-    	Integer X; //min n° di reporter per partita
-    	try {
-    		N=Integer.parseInt(txtN.getText());
-    		X=Integer.parseInt(txtX.getText());
-    	}catch(NumberFormatException nfe) {
-    		txtResult.appendText("Devi scrivere due numeri interi");
-    		return;
-    	}catch(NullPointerException npe) {
-    		txtResult.appendText("Devi scrivere due numeri interi");
+    	if(model.getGraph()==null) {
+    		txtResult.setText("Devi prima creare il grafo!");
     		return;
     	}
     	
-    	this.model.simula(N);
+    	Integer N=0;
+    	Integer X=0;
     	
-    	txtResult.appendText("\nMediamente il numero di reporter che ha assistito a una partita"
-    			+ "è: "+this.model.getAVGReporters()+"\n");
+    	try {
+    		N=Integer.parseInt(txtN.getText());
+    		X=Integer.parseInt(txtX.getText());
+    		if(N==null || X==null) {
+    			txtResult.setText("Inserisci un numero intero di reporter e una soglia di criticità");
+    			return;
+    		}
+    	}catch(NumberFormatException nfe) {
+    		txtResult.setText("Inserisci un numero intero di reporter e una soglia di criticità");
+    		return;
+    	}catch(NullPointerException npe) {
+    		txtResult.setText("Inserisci un numero intero di reporter e una soglia di criticità");
+    		return;
+    	}
     	
-    	txtResult.appendText("Il numero di partite per cui il numero di reporter è sotto la soglia è: "
-    			+ " "+this.model.getNPartiteSottoSoglia(X)+"\n");
+    	model.simula(N, X);
+    	txtResult.appendText("\n\nIl numero medio di reporter per partita è: "+model.getAvgReporterAMatch());
+    	txtResult.appendText("\nIl numero di partite con un n° di reporter sotto la soglia critica è: "+model.getPartiteCritiche());
+    	
+    	
+    	
     }
 
     @FXML // This method is called by the FXMLLoader when initialization is complete

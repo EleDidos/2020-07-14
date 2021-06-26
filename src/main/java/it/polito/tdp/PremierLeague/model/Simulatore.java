@@ -1,122 +1,215 @@
 package it.polito.tdp.PremierLeague.model;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.PriorityQueue;
 
 import org.jgrapht.graph.DefaultWeightedEdge;
+import org.jgrapht.graph.SimpleDirectedGraph;
 import org.jgrapht.graph.SimpleDirectedWeightedGraph;
 
 public class Simulatore {
 	
-	private int N; //reporters per squadra all'inizio
-	private List<Match> matches;
-	private SimpleDirectedWeightedGraph<Team, DefaultWeightedEdge> graph;
-	private int index=0; //dei reporter creati
-	private int cnt=0; //mi permette di mettere N reporter per ogni team
-	private Map <Integer, Team> idMap;
-	private Map <Integer,Team> classifica;
 	
-	public void run(Integer n, List<Match> listAllMatches, SimpleDirectedWeightedGraph<Team, DefaultWeightedEdge> graph, 
-			Map <Integer, Team> idMap, Map <Integer,Team> classifica) {
-		this.N=n;
-		this.matches=listAllMatches;
+	private SimpleDirectedGraph< Team , DefaultWeightedEdge> graph;
+	private Integer N; //per squadra all'inizio
+	private Integer X; //soglia
+	private List <Match> matches;
+	private Map <Integer,Team   > idMap;
+	private List<Team> classifica;
+	private int partiteCritiche;
+	
+	private List <Integer> reporterPerMatchList;
+	
+	
+	public Simulatore(SimpleDirectedGraph< Team , DefaultWeightedEdge> graph, Integer N, Integer X, List <Match> matches,Map <Integer,Team   > idMap,List<Team> classifica) {
+		
+		//ordina le partite cronologicamente
+		Collections.sort(matches);
+		
 		this.graph=graph;
+		this.N=N;
+		this.X=X;
+		this.matches=matches;
 		this.idMap=idMap;
 		this.classifica=classifica;
+		partiteCritiche=0;
 		
-		Collections.sort(matches); //ordine cronologico
+		reporterPerMatchList = new ArrayList<Integer>();
 		
-		//creo N reporters per ogni team
-		for(Team t: graph.vertexSet()) {
-			cnt=0;
-			while(cnt<N) {
-				Reporter r = new Reporter(index++);
-				t.addReporter(r);
-				cnt++;
-			}
-		}
-			
-		/////////// PER OGNI PARTITA IN ORDINE DI DATA ///////////////////////
+		//N REPORTER PER TEAM
+		int idReporter=1;
+		for(Team t: graph.vertexSet())
+			for(int i=1;i<=N;i++)
+				t.addReporter(new Reporter(idReporter++));
 		
-		for(Match m: matches) {
-			Integer IDVincente = m.IDVincente(); 
-			Integer IDPerdente = m.IDPerdente();
-			
-			if(IDVincente==0) { //se PAREGGIO cambio match --> rimane tutto così
-				continue;
-			}
-				
-			Team vincente = idMap.get(IDVincente);
-			Team perdente = idMap.get(IDPerdente);
-			
-			//associo reporters delle squadre al match
-			for(Reporter r: vincente.getReportersTeam()  )
-				m.addReporter(r);
-			for(Reporter r: perdente.getReportersTeam()  )
-				m.addReporter(r);
-			
-			//al termine del match --> promozione o bocciature
-			double prob;
-			
-			//VINCITORE: prendo 1 reporter
-			for(Reporter r: vincente.getReportersTeam() ) {
-				prob=Math.random();
-				if(prob<=0.5) {//tolgo il r da questa squadra e lo metto in una migliore
-					vincente.removeReporter(r);
-					this.cambiaTeamAReporter(r,1, vincente);
-				}	
-				break;
-			}
-			
-			//PERDENTE: prendo 1 o più reporter e li riassegno
-			prob=Math.random();
-			if(prob<=0.2) {
-				int nReporterPerdente = perdente.getReportersTeam().size();
-				//int probReporter = (int)Math.random()*nReporterPerdente;
-////PROBLEMA ---> 0,......		
-				int probReporter = 2;
-				//sposto un numero di reporter pari a "probReporter"
-				
-				
-				for(int j=0; j<probReporter;j++) {
-					Reporter r = perdente.getReportersTeam().get(j);
-					perdente.removeReporter(r);
-					this.cambiaTeamAReporter(r,-1, perdente);
-				}
-			}
-			
-			
-		}//for per ogni partita
 		
-	} //funzione
-
+	}
 	
-	/**
-	 * Se i=1 --> lo sposto in una squadra migliore
-	 * Se i=-1 --> lo sposto in una squadra peggiore
-	 * @param r
-	 * @param i
-	 */
-	private void cambiaTeamAReporter(Reporter r, int i, Team team) {
-		switch(i) {
-			case 1:
-				for(Integer punti: classifica.keySet())
-					if(punti>team.getPunti()) {
-						team.addReporter(r);
-						break;
-					}
-			case -1:
-				for(Integer punti: classifica.keySet())
-					if(punti<team.getPunti()) {
-						team.addReporter(r);
-						break;
-					}
+	
+	public void run() {
+		for (Match scelto: matches)
+			
+			processMatch(scelto);
+		//for
+	}
+	
+
+	double prob;
+	
+	private void processMatch(Match m) {
+		switch(m.getResultOfTeamHome()) {
+				
+			case 0: //PAREGGIO: non succede niente
+				break;
+				
+			case 1: //VITTORIA di CASA
+				
+				Team winner = idMap.get(m.getTeamHomeID());
+				Team loser =idMap.get(m.getTeamAwayID());
+				
+				//prendi il numero di reporter presenti alla partita
+				int nReporterTotali = winner.getReportersTeam().size()+loser.getReportersTeam().size();
+				reporterPerMatchList.add(nReporterTotali);
+				if(nReporterTotali<X)
+					partiteCritiche++;
+				
+				//////////////////////squadra di casa che vince
+				 prob = Math.random();
+				if(prob<=0.5) { //cambio un reporter
+					Reporter change = winner.getOneReporter();
+					if(change!=null) //ci sono dei reporter
+						this.putInABetterTeam(change, winner);
+				}
+				/////////////////////squadra in trasferta che perde
+				 prob = Math.random();
+				 
+					if(prob<=0.2) { //cambio uno o più reporter
+						//n° di reporter da cambiare
+						int nReporter = loser.getReportersTeam().size();
+						if(nReporter>0) {
+							int nReporterToChange = (int)Math.random()*nReporter;
+							for(int i=1;i<=nReporterToChange;i++) {
+								Reporter change = loser.getOneReporter();
+								this.putInAWorseTeam(change, loser);
+							}
+						}//nReporter>0
+						
+					}//20%
+				
+				break;
+				
+				
+			case -1: //VITTORIA TRAFSERTA
+				
+				Team winner2 = idMap.get(m.getTeamAwayID());
+				Team loser2 =idMap.get(m.getTeamHomeID());
+				
+				//prendi il numero di reporter presenti alla partita
+				int nReporterTotali2 = winner2.getReportersTeam().size()+loser2.getReportersTeam().size();
+				reporterPerMatchList.add(nReporterTotali2);
+				if(nReporterTotali2<X)
+					partiteCritiche++;
+				
+				//////////////////////squadra trasferta che vince
+				 prob = Math.random();
+				if(prob<=0.5) { //tolgo un reporter da questa squadra e scelgo dove metterlo
+					Reporter change = winner2.getOneReporter();
+					if(change!=null) //ci sono dei reporter
+						this.putInABetterTeam(change, winner2);
+				}
+				/////////////////////squadra in casa che perde
+				 prob = Math.random();
+				 
+					if(prob<=0.2) { //cambio uno o più reporter
+						//n° di reporter da cambiare
+						int nReporter = loser2.getReportersTeam().size();
+						if(nReporter>0) {
+							int nReporterToChange = (int)Math.random()*nReporter;
+							for(int i=1;i<=nReporterToChange;i++) {
+								Reporter change = loser2.getOneReporter();
+								this.putInAWorseTeam(change, loser2);
+							}
+						}//nReporter>0
+						
+					}//20%
+				
+				break;
+				
 			default:
 				break;
 		}
+	}
+
+
+	/**
+	 * prende reporter passato dalla sua attuale suqadra
+	 * e sceglie casualmente una suqdra migliore in cui metterlo
+	 * @param change
+	 */
+	private void putInABetterTeam(Reporter change, Team attuale) {
+		//posizione dell'attuale team
+		int posizione=0;
+		for(int i=1;i<=classifica.size();i++)
+			if(classifica.get(i).equals(attuale))
+				posizione=i;
+		//se è già in prima squadra rimane li
+		if(posizione==1)
+			return;
+		//da 0 al numero di squadre migliori di attuale
+		int probability= (int)Math.random()*(posizione-1);
+		//scegli tra le migliori
+		Team nuovo = classifica.get(probability);
+		//aggiungi il reporter
+		nuovo.addReporter(change);
 		
 	}
+	
+	
+	/**
+	 * prende reporter passato dalla sua attuale suqadra
+	 * e sceglie casualmente una suqdra peggiore in cui metterlo
+	 * @param change
+	 */
+	private void putInAWorseTeam(Reporter change, Team attuale) {
+		//posizione dell'attuale team
+		int posizione=0;
+		for(int i=1;i<=classifica.size();i++)
+			if(classifica.get(i).equals(attuale))
+				posizione=i;
+		//se è già in ultima squadra rimane li
+		if(posizione==classifica.size())
+			return;
+		
+		//lista di peggiori
+		List <Team> peggiori=new ArrayList <Team>();
+		for(int i=classifica.size();i>posizione;i--)
+			peggiori.add(classifica.get(i));
+		//da 0 al numero di squadre peggiori di attuale
+		int probability= (int)Math.random()*(peggiori.size());
+		//scegli tra le peggiori
+		Team nuovo = peggiori.get(probability);
+		//aggiungi il reporter
+		nuovo.addReporter(change);
+		
+	}
+
+
+	public int getPartiteCritiche() {
+		return partiteCritiche;
+	}
+
+
+
+
+	public List<Integer> getReporterPerMatchList() {
+		return reporterPerMatchList;
+	}
+
+	
+	
 	
 
 }

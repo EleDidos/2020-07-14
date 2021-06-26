@@ -87,12 +87,49 @@ public class PremierLeagueDAO {
 		}
 	}
 	
-	public void listAllMatches(Team t){
+	
+	public void loadAllVertici(Map <Integer, Team> idMap){
+		
+		
+		String sql = "SELECT * "
+				+ "FROM Teams" ;
+		try {
+			Connection conn = DBConnect.getConnection() ;
+
+			PreparedStatement st = conn.prepareStatement(sql) ;
+			
+			
+			
+			ResultSet res = st.executeQuery() ;
+			
+			while(res.next()) {
+				if(!idMap.containsKey(res.getInt("TeamID"))) {
+					Team t = new Team(res.getInt("TeamID"),res.getString("Name"));
+					idMap.put(res.getInt("TeamID"),t);
+					System.out.println();
+				}//if
+				
+			}//while
+			
+			conn.close();
+			return  ;
+
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return  ;
+		}
+
+	}
+
+
+
+	public List<Match> getMatches(Team t) {
 		String sql = "SELECT * "
 				+ "FROM Matches as m "
-				+ "WHERE TeamHomeID=? OR TeamAwayID=?";
-		List<Match> result = new ArrayList<Match>();
+				+ "WHERE TeamHomeID=? or TeamAwayID=?";
+
 		Connection conn = DBConnect.getConnection();
+		List <Match> matches = new ArrayList <Match>();
 
 		try {
 			PreparedStatement st = conn.prepareStatement(sql);
@@ -101,42 +138,14 @@ public class PremierLeagueDAO {
 			ResultSet res = st.executeQuery();
 			while (res.next()) {
 
-				
 				Match match = new Match(res.getInt("m.MatchID"), res.getInt("m.TeamHomeID"), res.getInt("m.TeamAwayID"), res.getInt("m.teamHomeFormation"), 
-							res.getInt("m.teamAwayFormation"),res.getInt("m.resultOfTeamHome"), res.getTimestamp("m.date").toLocalDateTime());
-				
-				
-				result.add(match);
-
-			}
-			conn.close();
-			t.setMatches(result);
+						res.getInt("m.teamAwayFormation"),res.getInt("m.resultOfTeamHome"), res.getTimestamp("m.date").toLocalDateTime());
+				matches.add(match);
 			
-		} catch (SQLException e) {
-			e.printStackTrace();
-			return ;
-		}
-	}
-	
-	public List<Arco> listAllPairs(Map <Integer, Team> idMap){
-		String sql = "SELECT TeamHomeID, TeamAwayID "
-				+ "FROM Matches "
-				+ "WHERE TeamHomeID>TeamAwayID "
-				+ "GROUP BY TeamHomeID, TeamAwayID";
-		List<Arco> result = new ArrayList<Arco>();
-		Connection conn = DBConnect.getConnection();
 
-		try {
-			PreparedStatement st = conn.prepareStatement(sql);
-			ResultSet res = st.executeQuery();
-			while (res.next()) {
-
-				Arco a = new Arco (idMap.get(res.getInt("TeamHomeID")),idMap.get(res.getInt("TeamAwayID")));
-				
-				result.add(a);
 			}
 			conn.close();
-			return result;
+			return matches;
 			
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -144,11 +153,13 @@ public class PremierLeagueDAO {
 		}
 	}
 	
-	public List <Match> listAllMatches(){
+	
+	public List<Match> listAllMatches() {
 		String sql = "SELECT * "
-				+ "FROM Matches AS m";
-		List<Match> result = new ArrayList<Match>();
+				+ "FROM Matches as m ";
+
 		Connection conn = DBConnect.getConnection();
+		List <Match> matches = new ArrayList <Match>();
 
 		try {
 			PreparedStatement st = conn.prepareStatement(sql);
@@ -156,23 +167,21 @@ public class PremierLeagueDAO {
 			ResultSet res = st.executeQuery();
 			while (res.next()) {
 
-				
 				Match match = new Match(res.getInt("m.MatchID"), res.getInt("m.TeamHomeID"), res.getInt("m.TeamAwayID"), res.getInt("m.teamHomeFormation"), 
-							res.getInt("m.teamAwayFormation"),res.getInt("m.resultOfTeamHome"), res.getTimestamp("m.date").toLocalDateTime());
-				
-				
-				result.add(match);
+						res.getInt("m.teamAwayFormation"),res.getInt("m.resultOfTeamHome"), res.getTimestamp("m.date").toLocalDateTime());
+				matches.add(match);
+			
 
 			}
 			conn.close();
-			
-			return result;
+			return matches;
 			
 		} catch (SQLException e) {
 			e.printStackTrace();
 			return null;
 		}
 	}
+	
 	
 	
 }

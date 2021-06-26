@@ -12,37 +12,13 @@ public class Match implements Comparable <Match>{
 	Integer teamAwayFormation;
 	Integer resultOfTeamHome;
 	
-	
+	Integer punti=0;
 
 	LocalDateTime date;
 	
 	List <Reporter> reportersMatch;
 	
-	/**
-	 * 0 = in caso di pareggio
-	 * @return
-	 */
-	public Integer IDVincente() {
-		if(resultOfTeamHome==1)
-			return teamHomeID;
-		else if (resultOfTeamHome==-1)
-			return teamAwayID;
-		else
-			return 0;
-	}
 	
-	/**
-	 * 0 = in caso di pareggio
-	 * @return
-	 */
-	public Integer IDPerdente() {
-		if(resultOfTeamHome==1)
-			return teamAwayID;
-		else if (resultOfTeamHome==-1)
-			return teamHomeID;
-		else
-			return 0;
-	}
 	
 	
 	public Match(Integer matchID, Integer teamHomeID, Integer teamAwayID, Integer teamHomeFormation,
@@ -129,17 +105,14 @@ public class Match implements Comparable <Match>{
 		return true;
 	}
 	
-	public void addReporter(Reporter r) {
-		reportersMatch.add(r);
-	}
 	
+	//per DATA
 	public int compareTo (Match other) {
 		return this.date.compareTo(other.date);
 	}
 
-	public List<Reporter> getReportersMatch() {
-		return reportersMatch;
-	}
+	
+	
 	
 	
 }
