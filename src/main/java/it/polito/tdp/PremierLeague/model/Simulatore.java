@@ -63,6 +63,14 @@ public class Simulatore {
 		switch(m.getResultOfTeamHome()) {
 				
 			case 0: //PAREGGIO: non succede niente
+				Team team1 = idMap.get(m.getTeamHomeID());
+				Team team2 =idMap.get(m.getTeamAwayID());
+				
+				//prendi il numero di reporter presenti alla partita
+				int nReporterTotali0 = team1.getReportersTeam().size()+team2.getReportersTeam().size();
+				reporterPerMatchList.add(nReporterTotali0);
+				if(nReporterTotali0<X)
+					partiteCritiche++;
 				break;
 				
 			case 1: //VITTORIA di CASA
@@ -90,7 +98,9 @@ public class Simulatore {
 						//n° di reporter da cambiare
 						int nReporter = loser.getReportersTeam().size();
 						if(nReporter>0) {
-							int nReporterToChange = (int)Math.random()*nReporter;
+							double d = Math.random()*nReporter;
+					    	double approssimato = Math.ceil(d); //devo cambiare almeno 1 reporter --> per eccesso
+							int nReporterToChange = (int)approssimato; ;
 							for(int i=1;i<=nReporterToChange;i++) {
 								Reporter change = loser.getOneReporter();
 								this.putInAWorseTeam(change, loser);
@@ -127,7 +137,9 @@ public class Simulatore {
 						//n° di reporter da cambiare
 						int nReporter = loser2.getReportersTeam().size();
 						if(nReporter>0) {
-							int nReporterToChange = (int)Math.random()*nReporter;
+							double d = Math.random()*nReporter;
+					    	double approssimato = Math.ceil(d); //devo cambiare almeno 1 reporter --> per eccesso
+							int nReporterToChange = (int)approssimato; ;
 							for(int i=1;i<=nReporterToChange;i++) {
 								Reporter change = loser2.getOneReporter();
 								this.putInAWorseTeam(change, loser2);
@@ -152,14 +164,15 @@ public class Simulatore {
 	private void putInABetterTeam(Reporter change, Team attuale) {
 		//posizione dell'attuale team
 		int posizione=0;
-		for(int i=1;i<=classifica.size();i++)
+		for(int i=0;i<classifica.size();i++)
 			if(classifica.get(i).equals(attuale))
-				posizione=i;
+				posizione=i+1;
 		//se è già in prima squadra rimane li
 		if(posizione==1)
 			return;
 		//da 0 al numero di squadre migliori di attuale
-		int probability= (int)Math.random()*(posizione-1);
+		double probabilityD = (Math.random()*(posizione-1));
+		int probability= (int)probabilityD;
 		//scegli tra le migliori
 		Team nuovo = classifica.get(probability);
 		//aggiungi il reporter
@@ -176,19 +189,19 @@ public class Simulatore {
 	private void putInAWorseTeam(Reporter change, Team attuale) {
 		//posizione dell'attuale team
 		int posizione=0;
-		for(int i=1;i<=classifica.size();i++)
+		for(int i=0;i<classifica.size();i++)
 			if(classifica.get(i).equals(attuale))
-				posizione=i;
+				posizione=i+1;
 		//se è già in ultima squadra rimane li
 		if(posizione==classifica.size())
 			return;
 		
 		//lista di peggiori
 		List <Team> peggiori=new ArrayList <Team>();
-		for(int i=classifica.size();i>posizione;i--)
+		for(int i=classifica.size()-1;i>=posizione;i--)
 			peggiori.add(classifica.get(i));
 		//da 0 al numero di squadre peggiori di attuale
-		int probability= (int)Math.random()*(peggiori.size());
+		int probability= (int)(Math.random()*(peggiori.size()));
 		//scegli tra le peggiori
 		Team nuovo = peggiori.get(probability);
 		//aggiungi il reporter

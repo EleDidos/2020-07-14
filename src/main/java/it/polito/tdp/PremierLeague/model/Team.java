@@ -20,7 +20,7 @@ public class Team implements Comparable <Team>{
 	 * @return
 	 */
 	public Reporter getOneReporter() {
-		if(reportersTeam==null)
+		if(reportersTeam.size()==0)
 			return null;
 		Reporter change = reportersTeam.remove(0); //rimuovo il primo
 		return change;

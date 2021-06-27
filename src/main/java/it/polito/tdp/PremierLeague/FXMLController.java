@@ -76,14 +76,16 @@ public class FXMLController {
     		for(int i=0;i<classifica.size();i++)
     			if(classifica.get(i).equals(scelto))
     				indice=i;
-    				
-    		txtResult.appendText("\n\nLe squadre che hanno totalizzato meno punti della prescelta sono:\n");
-    		for(int i=indice+1;i<classifica.size();i++)
-    			txtResult.appendText(classifica.get(i)+"\n");
     		
-    		txtResult.appendText("\n\nLe squadre che hanno totalizzato più punti della prescelta sono:\n");
+    		int puntiScelto=scelto.getPunti();
+    				
+    		txtResult.appendText("\n\nLe squadre che hanno totalizzato MENO PUNTI della prescelta sono:\n");
+    		for(int i=indice+1;i<classifica.size();i++)
+    			txtResult.appendText(classifica.get(i)+"( "+(puntiScelto-classifica.get(i).getPunti())+" )\n");
+    		
+    		txtResult.appendText("\n\nLe squadre che hanno totalizzato PIU' PUNTI della prescelta sono:\n");
     		for(int i=0;i<indice;i++)
-    			txtResult.appendText(classifica.get(i)+"\n");
+    			txtResult.appendText(classifica.get(i)+"( "+(classifica.get(i).getPunti()-puntiScelto)+" )\n");
     		
     }
 

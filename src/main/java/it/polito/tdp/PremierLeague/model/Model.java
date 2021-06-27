@@ -17,7 +17,7 @@ import it.polito.tdp.PremierLeague.db.PremierLeagueDAO;
 
 public class Model {
 	
-	private SimpleDirectedGraph< Team , DefaultWeightedEdge>graph;
+	private SimpleDirectedWeightedGraph< Team , DefaultWeightedEdge>graph;
 	private Map <Integer,Team   > idMap;
 	private PremierLeagueDAO dao;
 	private Simulatore sim;
@@ -28,7 +28,7 @@ public class Model {
 	}
 	
 	public void creaGrafo() {
-		graph= new SimpleDirectedGraph<>(DefaultWeightedEdge.class);
+		graph= new SimpleDirectedWeightedGraph<>(DefaultWeightedEdge.class);
 		
 		dao.loadAllVertici(idMap);
 		Graphs.addAllVertices(graph, idMap.values());
